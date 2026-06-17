@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iOS Self-Installer</title>
+    <title>iOS App Installer</title>
     <style>
         * {
             margin: 0;
@@ -58,6 +58,27 @@
             font-size: 14px;
         }
         
+        .browser-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: left;
+        }
+        
+        .browser-warning p {
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .browser-warning strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
         .info-box {
             background: #f5f5f5;
             border-left: 4px solid #667eea;
@@ -71,6 +92,11 @@
             color: #333;
             font-size: 13px;
             line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .info-box p:last-child {
+            margin-bottom: 0;
         }
         
         .button-group {
@@ -90,6 +116,10 @@
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .btn-primary {
@@ -106,6 +136,11 @@
             transform: translateY(0);
         }
         
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
         .btn-secondary {
             background: #e0e0e0;
             color: #333;
@@ -113,6 +148,16 @@
         
         .btn-secondary:hover {
             background: #d0d0d0;
+        }
+        
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-outline:hover {
+            background: #f0f0ff;
         }
         
         .status {
@@ -143,42 +188,11 @@
             display: block;
         }
         
-        .steps {
-            text-align: left;
-            margin: 25px 0;
-        }
-        
-        .steps h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-        
-        .step {
-            display: flex;
-            margin-bottom: 12px;
-            align-items: flex-start;
-        }
-        
-        .step-number {
-            background: #667eea;
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            flex-shrink: 0;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .step-text {
-            color: #333;
-            font-size: 13px;
-            line-height: 1.5;
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            display: block;
         }
         
         .progress-bar {
@@ -218,29 +232,12 @@
             to { transform: rotate(360deg); }
         }
         
-        .feature-list {
-            text-align: left;
-            margin: 20px 0;
-        }
-        
-        .feature {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            font-size: 13px;
-            color: #333;
-        }
-        
-        .feature-icon {
-            margin-right: 10px;
-            font-size: 18px;
-        }
-        
         .tabs {
             display: flex;
             gap: 10px;
             margin: 20px 0;
             border-bottom: 2px solid #e0e0e0;
+            overflow-x: auto;
         }
         
         .tab-btn {
@@ -252,6 +249,7 @@
             color: #666;
             border-bottom: 3px solid transparent;
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
         
         .tab-btn.active {
@@ -271,6 +269,72 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .steps {
+            text-align: left;
+            margin: 25px 0;
+        }
+        
+        .steps h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .steps h4 {
+            color: #667eea;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .step {
+            display: flex;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .step-text {
+            color: #333;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .method-box {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            text-align: left;
+        }
+        
+        .method-box h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .method-box p {
+            color: #333;
+            font-size: 12px;
+            line-height: 1.5;
         }
         
         @media (max-width: 480px) {
@@ -293,104 +357,110 @@
     <div class="container">
         <div class="header">
             <div class="icon">📱</div>
-            <h1>Self-Installer</h1>
-            <p class="subtitle">Install the app directly on your iPad</p>
+            <h1>App Installer</h1>
+            <p class="subtitle">Install apps on your iOS device</p>
         </div>
         
-        <div class="feature-list">
-            <div class="feature">
-                <span class="feature-icon">✅</span>
-                <span>One-tap installation</span>
-            </div>
-            <div class="feature">
-                <span class="feature-icon">🔄</span>
-                <span>Self-updating capability</span>
-            </div>
-            <div class="feature">
-                <span class="feature-icon">📦</span>
-                <span>No App Store required</span>
-            </div>
+        <div class="browser-warning" id="browserWarning">
+            <strong>✓ Chrome Detected</strong>
+            <p>Chrome has different capabilities than Safari. Choose an installation method below.</p>
         </div>
         
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('install')">📥 Install</button>
-            <button class="tab-btn" onclick="switchTab('guide')">📖 Guide</button>
-            <button class="tab-btn" onclick="switchTab('info')">ℹ️ Info</button>
+            <button class="tab-btn active" onclick="switchTab(event, 'methods')">Methods</button>
+            <button class="tab-btn" onclick="switchTab(event, 'download')">Download</button>
+            <button class="tab-btn" onclick="switchTab(event, 'help')">Help</button>
         </div>
         
-        <!-- Install Tab -->
-        <div class="tab-content active" id="install">
-            <div class="button-group">
-                <button class="btn btn-primary" onclick="downloadIPA()">
-                    <span id="downloadText">📥 Download IPA</span>
-                </button>
-                <button class="btn btn-secondary" onclick="downloadManifest()">
-                    📄 Download Manifest (Enterprise)
+        <!-- Methods Tab -->
+        <div class="tab-content active" id="methods">
+            <div class="method-box">
+                <h4>🔗 Method 1: Enterprise Link (Recommended)</h4>
+                <p>Click the link below to trigger iOS installation directly:</p>
+                <button class="btn btn-primary" style="margin-top: 10px;" onclick="triggerEnterpriseInstall()">
+                    📥 Install via Enterprise
                 </button>
             </div>
+            
+            <div class="method-box">
+                <h4>💾 Method 2: Download & Install</h4>
+                <p>Download the .ipa file, then open in Files app:</p>
+                <button class="btn btn-secondary" style="margin-top: 10px;" onclick="triggerDirectDownload()">
+                    📥 Download IPA File
+                </button>
+            </div>
+            
+            <div class="method-box">
+                <h4>📱 Method 3: Open in Safari</h4>
+                <p>Safari has better iOS app installation support:</p>
+                <button class="btn btn-outline" style="margin-top: 10px;" onclick="openInSafari()">
+                    🔗 Open in Safari
+                </button>
+            </div>
+        </div>
+        
+        <!-- Download Tab -->
+        <div class="tab-content" id="download">
+            <button class="btn btn-primary" onclick="triggerDirectDownload()" style="margin: 20px 0;">
+                <span id="downloadText">📥 Download IPA</span>
+            </button>
             
             <div class="progress-bar" id="progressBar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
+            
+            <div class="info-box">
+                <p><strong>After download:</strong></p>
+                <p>1. Open Files app</p>
+                <p>2. Go to Downloads</p>
+                <p>3. Tap the .ipa file</p>
+                <p>4. Follow iOS prompts</p>
+            </div>
         </div>
         
-        <!-- Guide Tab -->
-        <div class="tab-content" id="guide">
+        <!-- Help Tab -->
+        <div class="tab-content" id="help">
             <div class="steps">
-                <h3>iPad Installation Steps:</h3>
+                <h3>📖 Installation Guide</h3>
+                
+                <h4>If using Enterprise Method:</h4>
                 <div class="step">
                     <div class="step-number">1</div>
-                    <div class="step-text">Click "Download IPA" button</div>
+                    <div class="step-text">Tap "Install via Enterprise"</div>
                 </div>
                 <div class="step">
                     <div class="step-number">2</div>
-                    <div class="step-text">The file downloads to your Downloads folder</div>
+                    <div class="step-text">iOS will prompt to download the app</div>
                 </div>
                 <div class="step">
                     <div class="step-number">3</div>
-                    <div class="step-text">Open the Files app</div>
+                    <div class="step-text">App installs automatically</div>
+                </div>
+                
+                <h4>If using Download Method:</h4>
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Tap "Download IPA"</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Open Files app</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Tap the downloaded .ipa file</div>
                 </div>
                 <div class="step">
                     <div class="step-number">4</div>
-                    <div class="step-text">Go to Downloads and find SelfInstaller.ipa</div>
-                </div>
-                <div class="step">
-                    <div class="step-number">5</div>
-                    <div class="step-text">Tap the .ipa file to launch installation</div>
-                </div>
-                <div class="step">
-                    <div class="step-number">6</div>
-                    <div class="step-text">Confirm installation when prompted</div>
-                </div>
-                <div class="step">
-                    <div class="step-number">7</div>
-                    <div class="step-text">App appears on your home screen!</div>
+                    <div class="step-text">Confirm installation</div>
                 </div>
             </div>
             
-            <div class="info-box">
-                <p><strong>💡 Tip:</strong> If you see "Untrusted Developer" warning, go to Settings → General → VPN & Device Management and trust the developer profile.</p>
-            </div>
-        </div>
-        
-        <!-- Info Tab -->
-        <div class="tab-content" id="info">
-            <div class="info-box">
-                <p><strong>App Name:</strong> Self-Installer</p>
-                <p><strong>Version:</strong> 1.0.0</p>
-                <p><strong>Bundle ID:</strong> com.selfinstaller.app</p>
-                <p><strong>Minimum iOS:</strong> 14.0+</p>
-                <p id="lastUpdated"><strong>Last Updated:</strong> Just now</p>
-            </div>
-            
-            <div class="info-box" style="border-left-color: #28a745;">
-                <p><strong>What does it do?</strong></p>
-                <p>This app is designed to install and update itself without needing the App Store. It can download new versions and install them automatically.</p>
-            </div>
-            
-            <div class="info-box" style="border-left-color: #ffc107;">
-                <p><strong>⚠️ Important:</strong></p>
-                <p>This app requires developer trust on your device. Download only from trusted sources.</p>
+            <div class="info-box" style="border-left-color: #ffc107; margin-top: 20px;">
+                <p><strong>⚠️ Untrusted Developer?</strong></p>
+                <p>If you see a warning:</p>
+                <p>Settings → General → VPN & Device Management</p>
+                <p>Find the app and tap Trust</p>
             </div>
         </div>
         
@@ -398,8 +468,7 @@
     </div>
     
     <script>
-        function switchTab(tabName) {
-            // Hide all tabs
+        function switchTab(event, tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -407,7 +476,6 @@
                 btn.classList.remove('active');
             });
             
-            // Show selected tab
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
         }
@@ -417,7 +485,6 @@
             statusEl.textContent = message;
             statusEl.className = 'status ' + type;
             
-            // Auto-hide success messages after 5 seconds
             if (type === 'success') {
                 setTimeout(() => {
                     statusEl.classList.remove(type);
@@ -425,12 +492,24 @@
             }
         }
         
-        function downloadIPA() {
+        function triggerEnterpriseInstall() {
+            const manifestUrl = window.location.origin + window.location.pathname.replace('index.html', '') + 'manifest.plist';
+            const itmlinkUrl = `itms-services://?action=download-manifest&url=${encodeURIComponent(manifestUrl)}`;
+            
+            showStatus('Attempting enterprise installation...', 'info');
+            
+            window.location.href = itmlinkUrl;
+            
+            setTimeout(() => {
+                showStatus('💡 Enterprise method requires Safari. Open this page in Safari for best results.', 'warning');
+            }, 2000);
+        }
+        
+        function triggerDirectDownload() {
             const btn = event.target.closest('.btn');
             const textSpan = document.getElementById('downloadText');
             const originalText = textSpan.innerHTML;
             
-            // Disable button and show loading
             btn.disabled = true;
             textSpan.innerHTML = '<span class="spinner"></span>Downloading...';
             
@@ -440,7 +519,6 @@
             progressBar.classList.add('active');
             progressFill.style.width = '0%';
             
-            // Simulate progress
             let progress = 0;
             const interval = setInterval(() => {
                 progress += Math.random() * 30;
@@ -449,7 +527,6 @@
                 if (progress >= 90) clearInterval(interval);
             }, 200);
             
-            // Start actual download
             const link = document.createElement('a');
             link.href = 'SelfInstaller.ipa';
             link.download = 'SelfInstaller.ipa';
@@ -461,7 +538,7 @@
                 
                 progressFill.style.width = '100%';
                 setTimeout(() => {
-                    showStatus('✓ Download started! Check your Files app.', 'success');
+                    showStatus('✓ Download started! Check Files or Downloads.', 'success');
                     progressBar.classList.remove('active');
                     btn.disabled = false;
                     textSpan.innerHTML = originalText;
@@ -469,31 +546,41 @@
             }, 1000);
         }
         
-        function downloadManifest() {
-            const link = document.createElement('a');
-            link.href = 'manifest.plist';
-            link.download = 'manifest.plist';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showStatus('✓ Manifest downloaded! Use for enterprise distribution.', 'success');
+        function openInSafari() {
+            const safariUrl = 'x-web-search://?q=' + encodeURIComponent(window.location.href);
+            
+            showStatus('Attempting to open in Safari...', 'info');
+            window.location.href = safariUrl;
+            
+            setTimeout(() => {
+                showStatus('💡 Copy this URL and open it in Safari for best results', 'info');
+            }, 2000);
         }
         
-        // Update last modified time
+        // Detect browser on load
         window.addEventListener('load', function() {
-            const now = new Date();
-            document.getElementById('lastUpdated').innerHTML = 
-                `<strong>Last Updated:</strong> ${now.toLocaleString()}`;
-        });
-        
-        // Prevent double-click
-        document.querySelectorAll('.btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                this.style.pointerEvents = 'none';
-                setTimeout(() => {
-                    this.style.pointerEvents = 'auto';
-                }, 1000);
-            });
+            const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+            const isChrome = /Chrome/.test(navigator.userAgent);
+            const isMobile = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            
+            const warning = document.getElementById('browserWarning');
+            
+            if (isMobile && isSafari) {
+                warning.innerHTML = `
+                    <strong>✓ Safari Detected</strong>
+                    <p>Safari has the best support for iOS app installation. You can use any method below!</p>
+                `;
+            } else if (isMobile && isChrome) {
+                warning.innerHTML = `
+                    <strong>⚠️ Chrome Detected</strong>
+                    <p>Chrome has limited app installation support. For best results, open this page in Safari.</p>
+                `;
+            } else if (!isMobile) {
+                warning.innerHTML = `
+                    <strong>⚠️ Desktop Detected</strong>
+                    <p>This page is designed for iOS devices. To install an app, open this URL on your iPhone or iPad.</p>
+                `;
+            }
         });
     </script>
 </body>
