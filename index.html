@@ -337,6 +337,58 @@
             line-height: 1.5;
         }
         
+        .file-input-wrapper {
+            display: none;
+        }
+        
+        .file-list {
+            margin-top: 20px;
+        }
+        
+        .file-item {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-name {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .file-name strong {
+            color: #333;
+            display: block;
+            font-size: 13px;
+        }
+        
+        .file-size {
+            color: #999;
+            font-size: 12px;
+            display: block;
+        }
+        
+        .btn-download-file {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+        
+        .btn-download-file:hover {
+            background: #764ba2;
+        }
+        
         @media (max-width: 480px) {
             .container {
                 padding: 30px 20px;
@@ -349,6 +401,17 @@
             .btn {
                 padding: 12px 24px;
                 font-size: 15px;
+            }
+            
+            .file-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .btn-download-file {
+                margin-left: 0;
+                margin-top: 8px;
+                width: 100%;
             }
         }
     </style>
@@ -383,10 +446,10 @@
             </div>
             
             <div class="method-box">
-                <h4>💾 Method 2: Download & Install</h4>
-                <p>Download the .ipa file, then open in Files app:</p>
-                <button class="btn btn-secondary" style="margin-top: 10px;" onclick="triggerDirectDownload()">
-                    📥 Download IPA File
+                <h4>💾 Method 2: Choose & Download IPA</h4>
+                <p>Select an IPA file and download it for installation:</p>
+                <button class="btn btn-secondary" style="margin-top: 10px;" onclick="openFilePicker()">
+                    📂 Choose IPA File
                 </button>
             </div>
             
@@ -401,12 +464,17 @@
         
         <!-- Download Tab -->
         <div class="tab-content" id="download">
-            <button class="btn btn-primary" onclick="triggerDirectDownload()" style="margin: 20px 0;">
-                <span id="downloadText">📥 Download IPA</span>
+            <button class="btn btn-primary" onclick="openFilePicker()" style="margin: 20px 0;">
+                <span id="downloadText">📂 Choose IPA File</span>
             </button>
             
             <div class="progress-bar" id="progressBar">
                 <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="file-list" id="fileList" style="display: none;">
+                <h3 style="text-align: left; margin-bottom: 15px; color: #333;">Selected Files:</h3>
+                <div id="filesContainer"></div>
             </div>
             
             <div class="info-box">
@@ -437,22 +505,22 @@
                     <div class="step-text">App installs automatically</div>
                 </div>
                 
-                <h4>If using Download Method:</h4>
+                <h4>If using Choose & Download Method:</h4>
                 <div class="step">
                     <div class="step-number">1</div>
-                    <div class="step-text">Tap "Download IPA"</div>
+                    <div class="step-text">Tap "Choose IPA File"</div>
                 </div>
                 <div class="step">
                     <div class="step-number">2</div>
-                    <div class="step-text">Open Files app</div>
+                    <div class="step-text">Browse and select an .ipa file</div>
                 </div>
                 <div class="step">
                     <div class="step-number">3</div>
-                    <div class="step-text">Tap the downloaded .ipa file</div>
+                    <div class="step-text">Tap "Download" to download it</div>
                 </div>
                 <div class="step">
                     <div class="step-number">4</div>
-                    <div class="step-text">Confirm installation</div>
+                    <div class="step-text">Open Files app and tap the .ipa</div>
                 </div>
             </div>
             
@@ -466,6 +534,9 @@
         
         <div class="status" id="status"></div>
     </div>
+    
+    <!-- Hidden file input -->
+    <input type="file" id="ipaFileInput" accept=".ipa" style="display: none;" onchange="handleFileSelection(event)" />
     
     <script>
         function switchTab(event, tabName) {
@@ -492,6 +563,88 @@
             }
         }
         
+        function openFilePicker() {
+            const input = document.getElementById('ipaFileInput');
+            input.click();
+        }
+        
+        function handleFileSelection(event) {
+            const files = event.target.files;
+            
+            if (files.length === 0) {
+                showStatus('No file selected', 'warning');
+                return;
+            }
+            
+            const fileList = document.getElementById('fileList');
+            const filesContainer = document.getElementById('filesContainer');
+            filesContainer.innerHTML = '';
+            
+            Array.from(files).forEach((file, index) => {
+                if (!file.name.toLowerCase().endsWith('.ipa')) {
+                    showStatus('Only .ipa files are supported', 'error');
+                    return;
+                }
+                
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-name">
+                        <strong>📦 ${file.name}</strong>
+                        <span class="file-size">${sizeMB} MB</span>
+                    </div>
+                    <button class="btn-download-file" onclick="downloadFile('${file.name}', event)">
+                        Download
+                    </button>
+                `;
+                filesContainer.appendChild(fileItem);
+            });
+            
+            fileList.style.display = 'block';
+            showStatus(`✓ Selected ${files.length} file(s)`, 'success');
+        }
+        
+        function downloadFile(fileName, clickEvent) {
+            const input = document.getElementById('ipaFileInput');
+            const files = input.files;
+            
+            let selectedFile = null;
+            Array.from(files).forEach(file => {
+                if (file.name === fileName) {
+                    selectedFile = file;
+                }
+            });
+            
+            if (!selectedFile) {
+                showStatus('File not found', 'error');
+                return;
+            }
+            
+            const btn = clickEvent.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '⏳ Downloading...';
+            
+            // Create blob and download
+            const url = URL.createObjectURL(selectedFile);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = selectedFile.name;
+            
+            setTimeout(() => {
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showStatus(`✓ Downloaded: ${selectedFile.name}`, 'success');
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }, 500);
+        }
+        
         function triggerEnterpriseInstall() {
             const manifestUrl = window.location.origin + window.location.pathname.replace('index.html', '') + 'manifest.plist';
             const itmlinkUrl = `itms-services://?action=download-manifest&url=${encodeURIComponent(manifestUrl)}`;
@@ -503,47 +656,6 @@
             setTimeout(() => {
                 showStatus('💡 Enterprise method requires Safari. Open this page in Safari for best results.', 'warning');
             }, 2000);
-        }
-        
-        function triggerDirectDownload() {
-            const btn = event.target.closest('.btn');
-            const textSpan = document.getElementById('downloadText');
-            const originalText = textSpan.innerHTML;
-            
-            btn.disabled = true;
-            textSpan.innerHTML = '<span class="spinner"></span>Downloading...';
-            
-            const progressBar = document.getElementById('progressBar');
-            const progressFill = document.getElementById('progressFill');
-            
-            progressBar.classList.add('active');
-            progressFill.style.width = '0%';
-            
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 30;
-                progressFill.style.width = Math.min(progress, 90) + '%';
-                
-                if (progress >= 90) clearInterval(interval);
-            }, 200);
-            
-            const link = document.createElement('a');
-            link.href = 'SelfInstaller.ipa';
-            link.download = 'SelfInstaller.ipa';
-            
-            setTimeout(() => {
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                progressFill.style.width = '100%';
-                setTimeout(() => {
-                    showStatus('✓ Download started! Check Files or Downloads.', 'success');
-                    progressBar.classList.remove('active');
-                    btn.disabled = false;
-                    textSpan.innerHTML = originalText;
-                }, 500);
-            }, 1000);
         }
         
         function openInSafari() {
